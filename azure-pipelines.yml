@@ -12,6 +12,8 @@ variables:
   mySqlRepository: 'nmalvankar/mysql'
   tag: '$(Build.BuildId)'
   imagePullSecret: 'secret'
+  MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
+  MAVEN_OPTS: '-Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
 
 stages:
 - stage: 'Build'
@@ -23,11 +25,21 @@ stages:
       vmImage: 'ubuntu-latest'
 
     steps:
+    - task: Cache@2
+      displayName: Cache Maven local repo
+      inputs:
+        key: 'maven | "$(Agent.OS)" | **/pom.xml'
+        restoreKeys: |
+          maven | "$(Agent.OS)"
+          maven
+        path: $(MAVEN_CACHE_FOLDER)
+
+    - script: mvn install -B -e
     - task: Maven@3
       displayName: 'Build the maven artifact'
       inputs:
         mavenPomFile: 'pom.xml'
-        mavenOptions: '-Xmx3072m'
+        mavenOptions: '-Xmx3072m $(MAVEN_OPTS)'
         javaHomeOption: 'JDKVersion'
         jdkVersionOption: '1.8'
         jdkArchitectureOption: 'x64'
