@@ -6,6 +6,13 @@
 trigger:
 - main
 
+variables:
+  buildConfiguration: 'Release'
+  springPetRepository: 'nmalvankar/spring-pet'
+  mySqlRepository: 'nmalvankar/mysql'
+  tag: '$(Build.BuildId)'
+  imagePullSecret: 'secret'
+
 stages:
 - stage: 'Build'
   displayName: 'Build and push'
@@ -50,7 +57,7 @@ stages:
     displayName: Deploy
     pool:
       vmImage: 'ubuntu-latest'
-    environment: 'openshift-stage'
+    environment: 'openshift.stage'
     variables:
     - group: Release
     strategy:
@@ -65,13 +72,13 @@ stages:
               action: createSecret
               secretName: $(imagePullSecret)
               dockerRegistryEndpoint: 'my-quay-registry'
-              kubernetesServiceConnection: 'openshift-stage-1652284157021'
+              kubernetesServiceConnection: 'openshift-stage-1652464815216'
               namespace: 'stage'
           - task: KubernetesManifest@0
             displayName: Deploy to Kubernetes cluster
             inputs:
               action: deploy
-              kubernetesServiceConnection: 'openshift-stage-1652284157021'
+              kubernetesServiceConnection: 'openshift-stage-1652464815216'
               namespace: 'stage'
               manifests: |
                 $(Pipeline.Workspace)/manifests/deployment.yaml
