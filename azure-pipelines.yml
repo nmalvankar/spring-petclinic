@@ -81,6 +81,8 @@ stages:
               kubernetesServiceConnection: 'openshift-stage-1652464815216'
               namespace: 'stage'
               manifests: |
+                $(Pipeline.Workspace)/manifests/cm.yaml
+                $(Pipeline.Workspace)/manifests/secret.yaml
                 $(Pipeline.Workspace)/manifests/deployment.yaml
                 $(Pipeline.Workspace)/manifests/service.yaml
               imagePullSecrets: |
