@@ -58,3 +58,6 @@ spec:
           image: quay.io/nmalvankar/spring-petclinic
           ports:
           - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: spring-petclinic          
