@@ -101,4 +101,4 @@ stages:
                 $(imagePullSecret)
               containers: |
                 $(RegistryName)/$(springPetRepository):$(tag)
-                $(RegistryName)/$(mySqlRepository):$(tag)
+                $(RegistryName)/$(mySqlRepository):latest
