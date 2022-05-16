@@ -61,8 +61,8 @@ stages:
     - publish: '$(Build.SourcesDirectory)/manifests'
       artifact: manifests
 
-- stage: 'Deploy to Dev'
-  displayName: 'Deploy the containers'
+- stage: 'Deploy'
+  displayName: 'Deploy to Dev'
   dependsOn: Build
   jobs:
   - deployment: Deploy
@@ -103,8 +103,8 @@ stages:
                 $(RegistryName)/$(springPetRepository):$(tag)
                 $(RegistryName)/$(mySqlRepository):latest
 
-- stage: 'Deploy to Stage'
-  displayName: 'Deploy the containers'
+- stage: 'Deploy'
+  displayName: 'Deploy to Stage'
   dependsOn: Build
   jobs:
   - deployment: Deploy
