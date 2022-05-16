@@ -84,13 +84,13 @@ stages:
               action: createSecret
               secretName: $(imagePullSecret)
               dockerRegistryEndpoint: 'my-quay-registry'
-              kubernetesServiceConnection: 'openshift-dev-1652464815216'
+              kubernetesServiceConnection: 'openshift-dev-1652736334320'
               namespace: 'dev'
           - task: KubernetesManifest@0
             displayName: Deploy to Kubernetes cluster
             inputs:
               action: deploy
-              kubernetesServiceConnection: 'openshift-dev-1652464815216'
+              kubernetesServiceConnection: 'openshift-dev-1652736334320'
               namespace: 'dev'
               manifests: |
                 $(Pipeline.Workspace)/manifests/cm.yaml
