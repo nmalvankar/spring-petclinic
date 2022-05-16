@@ -105,7 +105,7 @@ stages:
 
 - stage: 'Deploy_Stage'
   displayName: 'Deploy to Stage'
-  dependsOn: Build
+  dependsOn: Deploy_Dev
   jobs:
   - deployment: Deploy
     displayName: Deploy
