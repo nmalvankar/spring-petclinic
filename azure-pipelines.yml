@@ -93,10 +93,10 @@ stages:
               kubernetesServiceConnection: 'openshift-dev-1652736334320'
               namespace: 'dev'
               manifests: |
-                $(Pipeline.Workspace)/manifests/cm.yaml
-                $(Pipeline.Workspace)/manifests/secret.yaml
-                $(Pipeline.Workspace)/manifests/deployment.yaml
-                $(Pipeline.Workspace)/manifests/service.yaml
+                $(Pipeline.Workspace)/manifests/dev/cm.yaml
+                $(Pipeline.Workspace)/manifests/dev/secret.yaml
+                $(Pipeline.Workspace)/manifests/dev/deployment.yaml
+                $(Pipeline.Workspace)/manifests/dev/service.yaml
               imagePullSecrets: |
                 $(imagePullSecret)
               containers: |
@@ -135,10 +135,10 @@ stages:
               kubernetesServiceConnection: 'openshift-stage-1652464815216'
               namespace: 'stage'
               manifests: |
-                $(Pipeline.Workspace)/manifests/cm.yaml
-                $(Pipeline.Workspace)/manifests/secret.yaml
-                $(Pipeline.Workspace)/manifests/deployment.yaml
-                $(Pipeline.Workspace)/manifests/service.yaml
+                $(Pipeline.Workspace)/manifests/stage/cm.yaml
+                $(Pipeline.Workspace)/manifests/stage/secret.yaml
+                $(Pipeline.Workspace)/manifests/stage/deployment.yaml
+                $(Pipeline.Workspace)/manifests/stage/service.yaml
               imagePullSecrets: |
                 $(imagePullSecret)
               containers: |
