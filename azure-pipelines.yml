@@ -8,8 +8,8 @@ trigger:
 
 variables:
   buildConfiguration: 'Release'
-  springPetRepository: 'nmalvankar/spring-petclinic'
-  mySqlRepository: 'nmalvankar/mysql'
+  springPetRepository: 'spring-petclinic'
+  mySqlRepository: 'mysql'
   tag: '$(Build.BuildId)'
   imagePullSecret: 'secret'
   MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
@@ -54,7 +54,7 @@ stages:
         buildContext: $(Build.Repository.LocalPath)
         repository: $(springPetRepository)
         dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
-        containerRegistry: 'my-quay-registry'
+        containerRegistry: 'azure-container-registry'
         tags: |
           $(tag)
     
@@ -83,7 +83,7 @@ stages:
             inputs:
               action: createSecret
               secretName: $(imagePullSecret)
-              dockerRegistryEndpoint: 'my-quay-registry'
+              dockerRegistryEndpoint: 'azure-container-registry'
               kubernetesServiceConnection: 'openshift-dev-1652736334320'
               namespace: 'dev'
           - task: KubernetesManifest@0
@@ -125,7 +125,7 @@ stages:
             inputs:
               action: createSecret
               secretName: $(imagePullSecret)
-              dockerRegistryEndpoint: 'my-quay-registry'
+              dockerRegistryEndpoint: 'azure-container-registry'
               kubernetesServiceConnection: 'openshift-stage-1652464815216'
               namespace: 'stage'
           - task: KubernetesManifest@0
