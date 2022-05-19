@@ -100,8 +100,8 @@ stages:
               imagePullSecrets: |
                 $(imagePullSecret)
               containers: |
-                $(RegistryName)/$(springPetRepository):$(tag)
-                $(RegistryName)/$(mySqlRepository):latest
+                $(ACR_RegistryName)/$(springPetRepository):$(tag)
+                $(ACR_RegistryName)/$(mySqlRepository):latest
 
 - stage: 'Deploy_Stage'
   displayName: 'Deploy to Stage'
@@ -142,5 +142,5 @@ stages:
               imagePullSecrets: |
                 $(imagePullSecret)
               containers: |
-                $(RegistryName)/$(springPetRepository):$(tag)
-                $(RegistryName)/$(mySqlRepository):latest
+                $(ACR_RegistryName)/$(springPetRepository):$(tag)
+                $(ACR_RegistryName)/$(mySqlRepository):latest
