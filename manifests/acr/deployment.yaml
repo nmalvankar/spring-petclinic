@@ -1,0 +1,63 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: arocontainerregistry.azurecr.io/mysql
+          ports:
+          - containerPort: 3306
+          env:
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql
+                  key: database-user
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql
+                  key: database-password
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql
+                  key: database-root-password
+            - name: MYSQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: mysql
+                  key: database-name          
+---
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: spring-petclinic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spring-petclinic
+  template:
+    metadata:
+      labels:
+        app: spring-petclinic
+    spec:
+      containers:
+        - name: spring-petclinic
+          image: arocontainerregistry.azurecr.io/spring-petclinic
+          ports:
+          - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: spring-petclinic          
