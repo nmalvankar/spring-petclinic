@@ -95,7 +95,7 @@ stages:
               manifests: |
                 $(Pipeline.Workspace)/manifests/dev/cm.yaml
                 $(Pipeline.Workspace)/manifests/dev/secret.yaml
-                $(Pipeline.Workspace)/manifests/acr/deployment.yaml
+                $(Pipeline.Workspace)/manifests/dev/deployment.yaml
                 $(Pipeline.Workspace)/manifests/dev/service.yaml
               imagePullSecrets: |
                 $(imagePullSecret)
@@ -137,7 +137,7 @@ stages:
               manifests: |
                 $(Pipeline.Workspace)/manifests/stage/cm.yaml
                 $(Pipeline.Workspace)/manifests/stage/secret.yaml
-                $(Pipeline.Workspace)/manifests/acr/deployment.yaml
+                $(Pipeline.Workspace)/manifests/stage/deployment.yaml
                 $(Pipeline.Workspace)/manifests/stage/service.yaml
               imagePullSecrets: |
                 $(imagePullSecret)
