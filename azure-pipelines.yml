@@ -86,7 +86,7 @@ stages:
       inputs:
         targetPath: '$(System.DefaultWorkingDirectory)/artifacts'
         artifact: 'RHACS Output'
-        condition: succeededOrFailed()
+      condition: succeededOrFailed()
 
 - stage: 'Deploy_Dev'
   displayName: 'Deploy to Dev'
