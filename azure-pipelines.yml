@@ -62,7 +62,7 @@ stages:
 #       artifact: manifests
 
 - stage: Scan
-  dependsOn: Build
+  #dependsOn: Build
   jobs:
   - job: Scan
     displayName: Scan with RHACS
