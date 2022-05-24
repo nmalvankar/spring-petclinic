@@ -75,8 +75,8 @@ stages:
         mkdir $(System.DefaultWorkingDirectory)/artifacts
         curl -k -L -H "Authorization: Bearer $ROX_API_TOKEN" https://$ROX_CENTRAL_ENDPOINT/api/cli/download/roxctl-linux --output ./roxctl
         chmod +x ./roxctl
-        ./roxctl image scan --insecure-skip-tls-verify -e $ROX_CENTRAL_ENDPOINT --image arocontainerregistry.azurecr.io/spring-petclinic:$(tag) -o json > $(System.DefaultWorkingDirectory)/artifacts/image_scan.json
-        ./roxctl image check --insecure-skip-tls-verify -e $ROX_CENTRAL_ENDPOINT --image arocontainerregistry.azurecr.io/spring-petclinic:$(tag) > $(System.DefaultWorkingDirectory)/artifacts/image_check.txt
+        ./roxctl image scan --insecure-skip-tls-verify -e $ROX_CENTRAL_ENDPOINT --image arocontainerregistry.azurecr.io/spring-petclinic:$(tag) debug log --level=Debug -o json > $(System.DefaultWorkingDirectory)/artifacts/image_scan.json
+        ./roxctl image check --insecure-skip-tls-verify -e $ROX_CENTRAL_ENDPOINT --image arocontainerregistry.azurecr.io/spring-petclinic:$(tag) debug log --level=Debug > $(System.DefaultWorkingDirectory)/artifacts/image_check.txt
       displayName: 'RHACS image scan'
       env: 
         ROX_API_TOKEN: $(ACS_API_TOKEN)
