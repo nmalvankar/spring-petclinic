@@ -62,9 +62,10 @@ stages:
       artifact: manifests
 
 - stage: Scan
+  dependsOn: Build
   jobs:
   - job: Scan
-    displayName: Scan with StackRox
+    displayName: Scan with RHACS
     pool:
       vmImage: 'ubuntu-latest'
     variables:
@@ -74,9 +75,9 @@ stages:
         mkdir $(System.DefaultWorkingDirectory)/artifacts
         curl -k -L -H "Authorization: Bearer $ROX_API_TOKEN" https://$ROX_CENTRAL_ENDPOINT/api/cli/download/roxctl-linux --output ./roxctl
         chmod +x ./roxctl
-        ./roxctl image scan --insecure-skip-tls-verify -e $ROX_CENTRAL_ENDPOINT --image arocontainerregistry.azurecr.io/spring-petclinic:$(tag) --format csv > $(System.DefaultWorkingDirectory)/artifacts/image_scan.csv
+        ./roxctl image scan --insecure-skip-tls-verify -e $ROX_CENTRAL_ENDPOINT --image arocontainerregistry.azurecr.io/spring-petclinic:$(tag) -o json > $(System.DefaultWorkingDirectory)/artifacts/image_scan.json
         ./roxctl image check --insecure-skip-tls-verify -e $ROX_CENTRAL_ENDPOINT --image arocontainerregistry.azurecr.io/spring-petclinic:$(tag) > $(System.DefaultWorkingDirectory)/artifacts/image_check.txt
-      displayName: 'StackRox image scan'
+      displayName: 'RHACS image scan'
       env: 
         ROX_API_TOKEN: $(ACS_API_TOKEN)
         ROX_CENTRAL_ENDPOINT: '$(ACS_ENDPOINT)'
@@ -84,12 +85,12 @@ stages:
       displayName: 'Publish Pipeline Artifact'
       inputs:
         targetPath: '$(System.DefaultWorkingDirectory)/artifacts'
-        artifact: 'StackRox Output'
+        artifact: 'RHACS Output'
       condition: succeededOrFailed()
 
 - stage: 'Deploy_Dev'
   displayName: 'Deploy to Dev'
-  dependsOn: Build
+  dependsOn: Scan
   jobs:
   - deployment: Deploy
     displayName: Deploy
