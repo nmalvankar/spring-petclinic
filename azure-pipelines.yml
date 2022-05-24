@@ -134,6 +134,7 @@ stages:
 - stage: 'Deploy_Stage'
   displayName: 'Deploy to Stage'
   dependsOn: Deploy_Dev
+  condition: succeededOrFailed()
   jobs:
   - deployment: Deploy
     displayName: Deploy
