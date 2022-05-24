@@ -61,6 +61,32 @@ stages:
     - publish: '$(Build.SourcesDirectory)/manifests'
       artifact: manifests
 
+- stage: Scan
+  jobs:
+  - job: Scan
+    displayName: Scan with StackRox
+    pool:
+      vmImage: 'ubuntu-latest'
+    variables:
+    - group: Release
+    steps:
+    - script: |
+        mkdir $(System.DefaultWorkingDirectory)/artifacts
+        curl -k -L -H "Authorization: Bearer $ROX_API_TOKEN" https://$ROX_CENTRAL_ENDPOINT/api/cli/download/roxctl-linux --output ./roxctl
+        chmod +x ./roxctl
+        ./roxctl image scan -e $ROX_CENTRAL_ENDPOINT --image arocontainerregistry.azurecr.io/spring-petclinic:$(tag) --format csv > $(System.DefaultWorkingDirectory)/artifacts/image_scan.csv
+        ./roxctl image check -e $ROX_CENTRAL_ENDPOINT --image arocontainerregistry.azurecr.io/spring-petclinic:$(tag) > $(System.DefaultWorkingDirectory)/artifacts/image_check.txt
+      displayName: 'StackRox image scan'
+      env: 
+        ROX_API_TOKEN: $(ACS_API_TOKEN)
+        ROX_CENTRAL_ENDPOINT: '$(ACS_ENDPOINT)'
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Pipeline Artifact'
+      inputs:
+        targetPath: '$(System.DefaultWorkingDirectory)/artifacts'
+        artifact: 'StackRox Output'
+      condition: succeededOrFailed()
+
 - stage: 'Deploy_Dev'
   displayName: 'Deploy to Dev'
   dependsOn: Build
