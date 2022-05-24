@@ -16,53 +16,53 @@ variables:
   MAVEN_OPTS: '-Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
 
 stages:
-# - stage: 'Build'
-#   displayName: 'Build and push'
-#   jobs:  
-#   - job: 'Build'
-#     displayName: 'Build job'
-#     pool:
-#       vmImage: 'ubuntu-latest'
+- stage: 'Build'
+  displayName: 'Build and push'
+  jobs:  
+  - job: 'Build'
+    displayName: 'Build job'
+    pool:
+      vmImage: 'ubuntu-latest'
 
-#     steps:
-#     - task: Cache@2
-#       displayName: Cache Maven local repo
-#       inputs:
-#         key: 'maven | "$(Agent.OS)" | **/pom.xml'
-#         restoreKeys: |
-#           maven | "$(Agent.OS)"
-#           maven
-#         path: $(MAVEN_CACHE_FOLDER)
+    steps:
+    - task: Cache@2
+      displayName: Cache Maven local repo
+      inputs:
+        key: 'maven | "$(Agent.OS)" | **/pom.xml'
+        restoreKeys: |
+          maven | "$(Agent.OS)"
+          maven
+        path: $(MAVEN_CACHE_FOLDER)
 
-#     - script: mvn install -B -e
-#     - task: Maven@3
-#       displayName: 'Build the maven artifact'
-#       inputs:
-#         mavenPomFile: 'pom.xml'
-#         mavenOptions: '-Xmx3072m $(MAVEN_OPTS)'
-#         javaHomeOption: 'JDKVersion'
-#         jdkVersionOption: '1.8'
-#         jdkArchitectureOption: 'x64'
-#         publishJUnitResults: true
-#         testResultsFiles: '**/surefire-reports/TEST-*.xml'
-#         goals: 'package'
+    - script: mvn install -B -e
+    - task: Maven@3
+      displayName: 'Build the maven artifact'
+      inputs:
+        mavenPomFile: 'pom.xml'
+        mavenOptions: '-Xmx3072m $(MAVEN_OPTS)'
+        javaHomeOption: 'JDKVersion'
+        jdkVersionOption: '1.8'
+        jdkArchitectureOption: 'x64'
+        publishJUnitResults: true
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+        goals: 'package'
 
-#     - task: Docker@2
-#       displayName: 'Build and push the image to container registry'
-#       inputs:
-#         command: buildAndPush
-#         buildContext: $(Build.Repository.LocalPath)
-#         repository: $(springPetRepository)
-#         dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
-#         containerRegistry: 'azure-container-registry'
-#         tags: |
-#           $(tag)
+    - task: Docker@2
+      displayName: 'Build and push the image to container registry'
+      inputs:
+        command: buildAndPush
+        buildContext: $(Build.Repository.LocalPath)
+        repository: $(springPetRepository)
+        dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
+        containerRegistry: 'azure-container-registry'
+        tags: |
+          $(tag)
     
-#     - publish: '$(Build.SourcesDirectory)/manifests'
-#       artifact: manifests
+    - publish: '$(Build.SourcesDirectory)/manifests'
+      artifact: manifests
 
 - stage: Scan
-  #dependsOn: Build
+  dependsOn: Build
   jobs:
   - job: Scan
     displayName: Scan with RHACS
@@ -75,8 +75,8 @@ stages:
         mkdir $(System.DefaultWorkingDirectory)/artifacts
         curl -k -L -H "Authorization: Bearer $ROX_API_TOKEN" https://$ROX_CENTRAL_ENDPOINT/api/cli/download/roxctl-linux --output ./roxctl
         chmod +x ./roxctl
-        ./roxctl image scan --insecure-skip-tls-verify -e $ROX_CENTRAL_ENDPOINT --image arocontainerregistry.azurecr.io/spring-petclinic:86 -o json > $(System.DefaultWorkingDirectory)/artifacts/image_scan.json
-        ./roxctl image check --insecure-skip-tls-verify -e $ROX_CENTRAL_ENDPOINT --image arocontainerregistry.azurecr.io/spring-petclinic:86  > $(System.DefaultWorkingDirectory)/artifacts/image_check.txt
+        ./roxctl image scan --insecure-skip-tls-verify -e $ROX_CENTRAL_ENDPOINT --image $(ACR_RegistryName)/$(springPetRepository):$(tag) -o json > $(System.DefaultWorkingDirectory)/artifacts/image_scan.json
+        ./roxctl image check --insecure-skip-tls-verify -e $ROX_CENTRAL_ENDPOINT --image $(ACR_RegistryName)/$(springPetRepository):$(tag)  > $(System.DefaultWorkingDirectory)/artifacts/image_check.txt
       displayName: 'RHACS image scan'
       env: 
         ROX_API_TOKEN: $(ACS_API_TOKEN)
@@ -86,11 +86,12 @@ stages:
       inputs:
         targetPath: '$(System.DefaultWorkingDirectory)/artifacts'
         artifact: 'RHACS Output'
-      condition: succeededOrFailed()
+      
 
 - stage: 'Deploy_Dev'
   displayName: 'Deploy to Dev'
   dependsOn: Scan
+  condition: succeededOrFailed()
   jobs:
   - deployment: Deploy
     displayName: Deploy
