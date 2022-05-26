@@ -23,8 +23,7 @@ stages:
     displayName: 'Build job'
     pool:
       vmImage: 'ubuntu-latest'
-    variables:
-     - group: Release
+
     steps:
     - task: Cache@2
       displayName: Cache Maven local repo
@@ -49,76 +48,49 @@ stages:
         goals: 'package'
 
     - task: Docker@2
-      displayName: 'Build the application image'
+      displayName: 'Build and push the image to container registry'
       inputs:
-        command: build
+        command: buildAndPush
         buildContext: $(Build.Repository.LocalPath)
         repository: $(springPetRepository)
         dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
         containerRegistry: 'azure-container-registry'
         tags: |
           $(tag)
+    
+    - publish: '$(Build.SourcesDirectory)/manifests'
+      artifact: manifests
 
+- stage: Scan
+  dependsOn: Build
+  jobs:
+  - job: Scan
+    displayName: Scan with RHACS
+    pool:
+      vmImage: 'ubuntu-latest'
+    variables:
+    - group: Release
+    steps:
     - script: |
         mkdir $(System.DefaultWorkingDirectory)/artifacts
         curl -k -L -H "Authorization: Bearer $ROX_API_TOKEN" https://$ROX_CENTRAL_ENDPOINT/api/cli/download/roxctl-linux --output ./roxctl
         chmod +x ./roxctl
-        ./roxctl image scan --insecure-skip-tls-verify -e $ROX_CENTRAL_ENDPOINT --image $(springPetRepository):$(tag) -o json > $(System.DefaultWorkingDirectory)/artifacts/image_scan.json
+        ./roxctl image scan --insecure-skip-tls-verify -e $ROX_CENTRAL_ENDPOINT --image $(ACR_RegistryName)/$(springPetRepository):$(tag) -o json > $(System.DefaultWorkingDirectory)/artifacts/image_scan.json
 #./roxctl image check --insecure-skip-tls-verify -e $ROX_CENTRAL_ENDPOINT --image $(ACR_RegistryName)/$(springPetRepository):$(tag)  > $(System.DefaultWorkingDirectory)/artifacts/image_check.txt
-      displayName: Scan with RHACS before push
+      displayName: 'RHACS image scan'
       env: 
         ROX_API_TOKEN: $(ACS_API_TOKEN)
         ROX_CENTRAL_ENDPOINT: '$(ACS_ENDPOINT)'
-        
-      
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Pipeline Artifact'
       inputs:
         targetPath: '$(System.DefaultWorkingDirectory)/artifacts'
         artifact: 'RHACS Output'
-      condition: succeededOrFailed()  
-
-    - task: Docker@2
-      displayName: 'Push the image to image registry'
-      inputs:
-        command: push
-        containerRegistry: 'azure-container-registry'
-        tags: |
-          $(tag)      
-    
-    - publish: '$(Build.SourcesDirectory)/manifests'
-      artifact: manifests
-
-# - stage: Scan
-#   dependsOn: Build
-#   jobs:
-#   - job: Scan
-#     displayName: Scan with RHACS
-#     pool:
-#       vmImage: 'ubuntu-latest'
-#     variables:
-#     - group: Release
-#     steps:
-#     - script: |
-#         mkdir $(System.DefaultWorkingDirectory)/artifacts
-#         curl -k -L -H "Authorization: Bearer $ROX_API_TOKEN" https://$ROX_CENTRAL_ENDPOINT/api/cli/download/roxctl-linux --output ./roxctl
-#         chmod +x ./roxctl
-#         ./roxctl image scan --insecure-skip-tls-verify -e $ROX_CENTRAL_ENDPOINT --image $(ACR_RegistryName)/$(springPetRepository):$(tag) -o json > $(System.DefaultWorkingDirectory)/artifacts/image_scan.json
-# #./roxctl image check --insecure-skip-tls-verify -e $ROX_CENTRAL_ENDPOINT --image $(ACR_RegistryName)/$(springPetRepository):$(tag)  > $(System.DefaultWorkingDirectory)/artifacts/image_check.txt
-#       displayName: 'RHACS image scan'
-#       env: 
-#         ROX_API_TOKEN: $(ACS_API_TOKEN)
-#         ROX_CENTRAL_ENDPOINT: '$(ACS_ENDPOINT)'
-#     - task: PublishPipelineArtifact@1
-#       displayName: 'Publish Pipeline Artifact'
-#       inputs:
-#         targetPath: '$(System.DefaultWorkingDirectory)/artifacts'
-#         artifact: 'RHACS Output'
-#       condition: succeededOrFailed()
+      condition: succeededOrFailed()
 
 - stage: 'Deploy_Dev'
   displayName: 'Deploy to Dev'
-  dependsOn: Build
+  dependsOn: Scan
   condition: succeededOrFailed()
   jobs:
   - deployment: Deploy
