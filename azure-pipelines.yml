@@ -61,11 +61,15 @@ stages:
 
     - script: |
         mkdir $(System.DefaultWorkingDirectory)/artifacts
-        curl -k -L -H "Authorization: Bearer $(ACS_API_TOKEN)" https://$(ACS_ENDPOINT)/api/cli/download/roxctl-linux --output ./roxctl
+        curl -k -L -H "Authorization: Bearer $(ROX_API_TOKEN)" https://$(ROX_CENTRAL_ENDPOINT)/api/cli/download/roxctl-linux --output ./roxctl
         chmod +x ./roxctl
-        ./roxctl image scan --insecure-skip-tls-verify -e $(ACS_ENDPOINT) --image $(ACR_RegistryName)/$(springPetRepository):$(tag) -o json > $(System.DefaultWorkingDirectory)/artifacts/image_scan.json
+        ./roxctl image scan --insecure-skip-tls-verify -e $(ROX_CENTRAL_ENDPOINT) --image $(ACR_RegistryName)/$(springPetRepository):$(tag) -o json > $(System.DefaultWorkingDirectory)/artifacts/image_scan.json
 #./roxctl image check --insecure-skip-tls-verify -e $ROX_CENTRAL_ENDPOINT --image $(ACR_RegistryName)/$(springPetRepository):$(tag)  > $(System.DefaultWorkingDirectory)/artifacts/image_check.txt
       displayName: Scan with RHACS before push
+      env: 
+        ROX_API_TOKEN: $(ACS_API_TOKEN)
+        ROX_CENTRAL_ENDPOINT: '$(ACS_ENDPOINT)'
+        
       
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Pipeline Artifact'
