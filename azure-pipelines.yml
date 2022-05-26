@@ -49,20 +49,21 @@ stages:
         goals: 'package'
 
     - task: Docker@2
-      displayName: 'Build and push the image to container registry'
+      displayName: 'Build the application image'
       inputs:
-        command: buildAndPush
+        command: build
         buildContext: $(Build.Repository.LocalPath)
         repository: $(springPetRepository)
         dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
         containerRegistry: 'azure-container-registry'
         tags: |
           $(tag)
+
     - script: |
         mkdir $(System.DefaultWorkingDirectory)/artifacts
-        curl -k -L -H "Authorization: Bearer $ACS_API_TOKEN" https://$ACS_ENDPOINT/api/cli/download/roxctl-linux --output ./roxctl
+        curl -k -L -H "Authorization: Bearer $(ACS_API_TOKEN)" https://$(ACS_ENDPOINT)/api/cli/download/roxctl-linux --output ./roxctl
         chmod +x ./roxctl
-        ./roxctl image scan --insecure-skip-tls-verify -e $ACS_ENDPOINT --image $(ACR_RegistryName)/$(springPetRepository):$(tag) -o json > $(System.DefaultWorkingDirectory)/artifacts/image_scan.json
+        ./roxctl image scan --insecure-skip-tls-verify -e $(ACS_ENDPOINT) --image $(ACR_RegistryName)/$(springPetRepository):$(tag) -o json > $(System.DefaultWorkingDirectory)/artifacts/image_scan.json
 #./roxctl image check --insecure-skip-tls-verify -e $ROX_CENTRAL_ENDPOINT --image $(ACR_RegistryName)/$(springPetRepository):$(tag)  > $(System.DefaultWorkingDirectory)/artifacts/image_check.txt
       displayName: Scan with RHACS before push
       
@@ -72,6 +73,14 @@ stages:
         targetPath: '$(System.DefaultWorkingDirectory)/artifacts'
         artifact: 'RHACS Output'
       condition: succeededOrFailed()  
+
+    - task: Docker@2
+      displayName: 'Push the image to image registry'
+      inputs:
+        command: push
+        containerRegistry: 'azure-container-registry'
+        tags: |
+          $(tag)      
     
     - publish: '$(Build.SourcesDirectory)/manifests'
       artifact: manifests
